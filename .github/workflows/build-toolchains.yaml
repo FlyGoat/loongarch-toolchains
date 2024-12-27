@@ -1,0 +1,84 @@
+name: Build LoongArch Toolchains
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+  build-toolchains:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - toolchain: loongarch64-unknown-linux-gnu
+            ct-ng-repo: crosstool-ng/crosstool-ng
+            ct-ng-ref: master
+          - toolchain: loongarch64-unknown-elf
+            ct-ng-repo: crosstool-ng/crosstool-ng
+            ct-ng-ref: master
+          - toolchain: loongarch32r-unknown-linux-gnu
+            ct-ng-repo: jiegec/crosstool-ng
+            ct-ng-ref: loongarch32r
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "prereq Linux"
+        run: |
+          sudo apt-get install -y gperf help2man libtool-bin
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.ct-ng-repo }}
+          ref: ${{ matrix.ct-ng-ref }}
+          path: crosstool-ng
+
+      - name: Build crosstool-ng
+        run: |
+          cd crosstool-ng
+          ./bootstrap
+          ./configure --prefix="${{ github.workspace }}/.local/"
+          make
+          make install
+          echo "${{ github.workspace }}/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Build toolchain
+        run: |
+          mkdir -p src
+          ct-ng defconfig DEFCONFIG=ct-ng-configs/${{ matrix.toolchain }}
+          sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
+          sed -i -e '/CT_LOCAL_TARBALLS_DIR/s/HOME/CT_TOP_DIR/' .config
+          sed -i -e '/CT_PREFIX_DIR/s/HOME/CT_TOP_DIR/' .config
+          sed -i -e '/CT_STATIC_TOOLCHAIN /s/n$/y/' .config 
+          ct-ng build V=2
+
+      - name: Pack toolchain tarball
+        run: |
+          tar -C ${{ github.workspace }}/x-tools/${{ matrix.toolchain }} \
+              -czvf ${{ matrix.toolchain }}.linux-amd64.tar.gz .
+
+      - name: Upload toolchain tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.toolchain }}.linux-amd64.tar.gz
+          path: ${{ matrix.toolchain }}.linux-amd64.tar.gz
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.toolchain }}.linux-amd64.log
+          path: |
+            build.log
+            .config
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ matrix.toolchain }}.linux-amd64.tar.gz

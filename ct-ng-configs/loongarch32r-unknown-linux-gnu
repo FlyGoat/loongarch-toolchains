@@ -1,0 +1,27 @@
+CT_CONFIG_VERSION="4"
+CT_EXPERIMENTAL=y
+# CT_OVERRIDE_CONFIG_GUESS_SUB is not set
+CT_ARCH_LOONGARCH=y
+CT_ARCH_SUFFIX="r"
+CT_MULTILIB=y
+CT_ARCH_USE_MMU=y
+CT_ARCH_ARCH="loongarch32r"
+CT_STATIC_TOOLCHAIN=y
+CT_KERNEL_LINUX=y
+CT_LINUX_SRC_DEVEL=y
+CT_LINUX_DEVEL_URL="https://gitee.com/loongson-edu/la32r-Linux.git"
+CT_LINUX_DEVEL_BRANCH="la32r-new-world"
+CT_BINUTILS_SRC_DEVEL=y
+CT_BINUTILS_DEVEL_URL="https://gitee.com/loongson-edu/la32r_binutils.git"
+CT_BINUTILS_DEVEL_BRANCH="master"
+CT_GLIBC_SRC_DEVEL=y
+CT_GLIBC_DEVEL_URL="https://gitee.com/loongson-edu/la32r_glibc-2.28"
+CT_GLIBC_DEVEL_BRANCH="master"
+# CT_GLIBC_ENABLE_WERROR is not set
+CT_GCC_SRC_DEVEL=y
+CT_GCC_DEVEL_URL="https://gitee.com/loongson-edu/la32r_gcc-8.3.0.git"
+CT_GCC_DEVEL_BRANCH="master"
+CT_CC_GCC_CONFIG_TLS=y
+CT_CC_LANG_CXX=y
+CT_ZLIB_NEEDED=y
+CT_ZSTD_NEEDED=y
